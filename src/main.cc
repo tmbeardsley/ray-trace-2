@@ -4,8 +4,29 @@
 
 #include <iostream>
 
+// A sphere that rays can intersect
+bool hit_sphere(const point3& center, double radius, const ray& r) {
+
+    // Vector pointing from origin of ray to centre of sphere
+    vec3 oc = center - r.origin();
+
+    // Terms contributing to solution of quadratic equation
+    auto a = dot(r.direction(), r.direction());
+    auto b = -2.0 * dot(r.direction(), oc);
+    auto c = dot(oc, oc) - radius*radius;
+
+    // Discriminant tells us whether we have 0 (-ve), 1 (0), or 2 (+ve) solutions
+    auto discriminant = b*b - 4*a*c;
+    return (discriminant >= 0);
+}
+
+
 // Placeholder for colour of ray
 color ray_color(const ray& r) {
+
+    // Return a red pixel if the ray hits a sphere placed at (0,0,-1) with radius=0.5
+    if (hit_sphere(point3(0,0,-1), 0.5, r))
+        return color(1, 0, 0);
 
     // Create gradient background
     vec3 unit_direction = unit_vector(r.direction());
