@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vec3.h"
-#include <iostream>
 
 // Just an alias for a 3d vector
 using color = vec3;

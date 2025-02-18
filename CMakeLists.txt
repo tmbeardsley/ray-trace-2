@@ -32,13 +32,13 @@ set ( SOURCE_ONE_WEEKEND
   src/main.cc
 #   src/InOneWeekend/camera.h
   src/color.h
-#   src/InOneWeekend/hittable.h
-#   src/InOneWeekend/hittable_list.h
-#   src/InOneWeekend/interval.h
+  src/hittable.h
+  src/hittable_list.h
+  src/interval.h
 #   src/InOneWeekend/material.h
   src/ray.h
-#   src/InOneWeekend/rtweekend.h
-#   src/InOneWeekend/sphere.h
+  src/rtweekend.h
+  src/sphere.h
   src/vec3.h
 )
 

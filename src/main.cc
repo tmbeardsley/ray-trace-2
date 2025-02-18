@@ -1,38 +1,24 @@
-#include "color.h"
-#include "ray.h"
-#include "vec3.h"
+#include "rtweekend.h"
 
-#include <iostream>
-
-// A sphere that rays can intersect
-bool hit_sphere(const point3& center, double radius, const ray& r) {
-
-    // Vector pointing from origin of ray to centre of sphere
-    vec3 oc = center - r.origin();
-
-    // Terms contributing to solution of quadratic equation
-    auto a = dot(r.direction(), r.direction());
-    auto b = -2.0 * dot(r.direction(), oc);
-    auto c = dot(oc, oc) - radius*radius;
-
-    // Discriminant tells us whether we have 0 (-ve), 1 (0), or 2 (+ve) solutions
-    auto discriminant = b*b - 4*a*c;
-    return (discriminant >= 0);
-}
+#include "hittable.h"
+#include "hittable_list.h"
+#include "sphere.h"
 
 
 // Placeholder for colour of ray
-color ray_color(const ray& r) {
+color ray_color(const ray& r, const hittable& world) {
 
-    // Return a red pixel if the ray hits a sphere placed at (0,0,-1) with radius=0.5
-    if (hit_sphere(point3(0,0,-1), 0.5, r))
-        return color(1, 0, 0);
+    hit_record rec;
+    if (world.hit(r, interval(0, infinity), rec)) {
+        return 0.5 * (rec.normal + color(1,1,1));
+    }
 
     // Create gradient background
     vec3 unit_direction = unit_vector(r.direction());
     auto a = 0.5*(unit_direction.y() + 1.0);                            // scale a to: -1 <= a <= +1
     return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
 }
+
 
 
 int main() {
@@ -46,6 +32,13 @@ int main() {
     int image_height = int(image_width / aspect_ratio);     // pixels
     image_height = (image_height < 1) ? 1 : image_height;
 
+
+    // World
+
+    hittable_list world;
+
+    world.add(make_shared<sphere>(point3(0,0,-1), 0.5));
+    world.add(make_shared<sphere>(point3(0,-100.5,-1), 100));
 
 
     // Camera
@@ -88,7 +81,7 @@ int main() {
             auto ray_direction = pixel_center - camera_center;                              // Direction of ray from camera to pixel (not unit-vector)
             ray r(camera_center, ray_direction);                                            // Create a ray object that is fired from camera toward current pixel
 
-            color pixel_color = ray_color(r);                                               // Get the colour of the ray depending on its hit
+            color pixel_color = ray_color(r, world);                                        // Get the colour of the ray depending on its hit
             write_color(std::cout, pixel_color);
 
         }
