@@ -47,19 +47,25 @@ class lambertian : public material {
 class metal : public material {
 
     public:
-        metal(const color& albedo) : albedo(albedo) {}
+        metal(const color& albedo, double fuzz) : 
+            albedo(albedo), 
+            fuzz(fuzz < 1 ? fuzz : 1) {}
 
         bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override {
 
             // Direction of reflected ray
             vec3 reflected = reflect(r_in.direction(), rec.normal);
 
+            // Add random perturbation to direction of reflected ray (fuzzy reflection)
+            reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
+
             scattered = ray(rec.p, reflected);                          // Ray object originating from object intersection point
             attenuation = albedo;                                       // Reflectance of r,g,b
 
-            return true;
+            return (dot(scattered.direction(), rec.normal) > 0);        // Ray absorbed (returns false) if fuzziness scattered ray below surface
         }
 
     private:
         color albedo;
+        double fuzz;                // (0 < fuzz < 1) specifies fuzziness of reflected ray (random perturbation to direction of perfect reflection).
 };
