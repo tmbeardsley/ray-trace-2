@@ -30,7 +30,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
 set ( SOURCE_ONE_WEEKEND
   src/main.cc
-#   src/InOneWeekend/camera.h
+  src/camera.h
   src/color.h
   src/hittable.h
   src/hittable_list.h
