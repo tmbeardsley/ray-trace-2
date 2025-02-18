@@ -124,8 +124,9 @@ class camera {
         // world is a list of hittables. See if ray intersects any of them.
         // The t_min = 0.001 is a hack to stop shadow acne effect: round off errors putting origin of next ray below surface (section 9.3).
         if (world.hit(r, interval(0.001, infinity), rec)) {
-            //return 0.5 * (rec.normal + color(1,1,1));                   // 0 <= r,g,b <= 1.0
-            vec3 direction = random_on_hemisphere(rec.normal);
+            //return 0.5 * (rec.normal + color(1,1,1));                     // 0 <= r,g,b <= 1.0
+            // vec3 direction = random_on_hemisphere(rec.normal);           // Diffuse ray reflection
+            vec3 direction = rec.normal + random_unit_vector();             // Lambertian reflection - more rays scattered towards the surface normal
             return 0.5 * ray_color(ray(rec.p, direction), depth-1, world);
         }
 
