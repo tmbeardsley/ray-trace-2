@@ -45,6 +45,14 @@ class vec3 {
     double length_squared() const {
         return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
     }
+
+    static vec3 random() {
+        return vec3(random_double(), random_double(), random_double());     // 0 <= random_double() <= 1.0
+    }
+
+    static vec3 random(double min, double max) {
+        return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
+    }
 };
 
 // point3 is just an alias for vec3, but useful for geometric clarity in the code.
@@ -95,4 +103,24 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unit_vector(const vec3& v) {
     return v / v.length();
+}
+
+// Reject vectors not inside unit sphere until valid, then normalise to create unit vector.
+// lensq > 1e-160 ensures we don't get infinities due to limited precision.
+inline vec3 random_unit_vector() {
+    while (true) {
+        auto p = vec3::random(-1,1);
+        auto lensq = p.length_squared();
+        if (1e-160 < lensq && lensq <= 1)
+            return p / sqrt(lensq);
+    }
+}
+
+// Generates a random unit vector in the same hemisphere as the surface unit normal
+inline vec3 random_on_hemisphere(const vec3& normal) {
+    vec3 on_unit_sphere = random_unit_vector();
+    if (dot(on_unit_sphere, normal) > 0.0)  // In the same hemisphere as the normal
+        return on_unit_sphere;
+    else
+        return -on_unit_sphere;             // Invert random unit vector to be in same hemisphere as surface normal
 }

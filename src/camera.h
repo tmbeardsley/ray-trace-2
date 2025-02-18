@@ -9,6 +9,7 @@ class camera {
     double aspect_ratio       = 1.0;      // Ratio of image width over height
     int    image_width        = 100;      // Rendered image width in pixel count
     int    samples_per_pixel  = 10;       // Count of random ray samples for each pixel
+    int    max_depth          = 10;       // Maximum number of ray bounces into scene (if exceeded, no light contributed. I.e., color(0,0,0) returned).
 
     void render(const hittable& world) {
 
@@ -32,7 +33,7 @@ class camera {
                   ray r = get_ray(i, j);
 
                   // Get the colour of the current ray and add it to the colour sum (will be averaged later)
-                  pixel_color += ray_color(r, world);
+                  pixel_color += ray_color(r, max_depth, world);
                 }
 
                 // Write the average colour of ray samples to file
@@ -112,12 +113,20 @@ class camera {
   }
 
 
-    color ray_color(const ray& r, const hittable& world) const {
-        hit_record rec;
+    color ray_color(const ray& r, int depth, const hittable& world) const {
+        
+      // If we've exceeded the ray bounce limit, no more light is gathered.
+      if (depth <= 0)
+        return color(0,0,0);
+
+      hit_record rec;
 
         // world is a list of hittables. See if ray intersects any of them.
-        if (world.hit(r, interval(0, infinity), rec)) {
-            return 0.5 * (rec.normal + color(1,1,1));                   // 0 <= r,g,b <= 1.0
+        // The t_min = 0.001 is a hack to stop shadow acne effect: round off errors putting origin of next ray below surface (section 9.3).
+        if (world.hit(r, interval(0.001, infinity), rec)) {
+            //return 0.5 * (rec.normal + color(1,1,1));                   // 0 <= r,g,b <= 1.0
+            vec3 direction = random_on_hemisphere(rec.normal);
+            return 0.5 * ray_color(ray(rec.p, direction), depth-1, world);
         }
 
         // Create gradient background
