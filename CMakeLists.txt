@@ -35,7 +35,7 @@ set ( SOURCE_ONE_WEEKEND
   src/hittable.h
   src/hittable_list.h
   src/interval.h
-#   src/InOneWeekend/material.h
+  src/material.h
   src/ray.h
   src/rtweekend.h
   src/sphere.h

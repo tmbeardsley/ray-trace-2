@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hittable.h"
+#include "material.h"
 
 class camera {
 
@@ -104,13 +105,13 @@ class camera {
       auto ray_direction = pixel_sample - ray_origin;
 
       return ray(ray_origin, ray_direction);
-  }
+    }
 
 
-  vec3 sample_square() const {
+    vec3 sample_square() const {
       // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
       return vec3(random_double() - 0.5, random_double() - 0.5, 0);
-  }
+    }
 
 
     color ray_color(const ray& r, int depth, const hittable& world) const {
@@ -121,16 +122,22 @@ class camera {
 
       hit_record rec;
 
-        // world is a list of hittables. See if ray intersects any of them.
+        // world is a list of hittables. world.hit() returns the closest intersection (or false if none)
         // The t_min = 0.001 is a hack to stop shadow acne effect: round off errors putting origin of next ray below surface (section 9.3).
         if (world.hit(r, interval(0.001, infinity), rec)) {
-            //return 0.5 * (rec.normal + color(1,1,1));                     // 0 <= r,g,b <= 1.0
-            // vec3 direction = random_on_hemisphere(rec.normal);           // Diffuse ray reflection
-            vec3 direction = rec.normal + random_unit_vector();             // Lambertian reflection - more rays scattered towards the surface normal
-            return 0.5 * ray_color(ray(rec.p, direction), depth-1, world);
+
+          ray scattered;
+          color attenuation;
+
+          // rec.mat->scatter() is the scattering function of the material the hittable object is made of.
+          // It gives us the attenuation factor of the material and a scattered ray object in "attenuation" and "scattered".
+          if (rec.mat->scatter(r, rec, attenuation, scattered))         
+            return attenuation * ray_color(scattered, depth-1, world);
+
+          return color(0,0,0);  // Case where light was not scattered (absorbed).
         }
 
-        // Create gradient background
+        // Create gradient background (sky)
         vec3 unit_direction = unit_vector(r.direction());
         auto a = 0.5*(unit_direction.y() + 1.0);                        // scale a to: 0 <= a <= 1
         return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);

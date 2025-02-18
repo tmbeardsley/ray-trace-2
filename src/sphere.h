@@ -8,7 +8,10 @@ class sphere : public hittable {
   public:
     // Constructor requires the sphere to have a centre and a radius.
     // ray_tmin < t < ray_tmax, allow us to specify a range of valid intersection points (e.g., discounting -ve t).
-    sphere(const point3& center, double radius) : center(center), radius(std::fmax(0,radius)) {}
+    sphere(const point3& center, double radius, shared_ptr<material> mat) :
+      center(center),
+      radius(std::fmax(0,radius)), 
+      mat(mat) {}
 
     // Returns true if the specified ray intersects the sphere.
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
@@ -38,7 +41,8 @@ class sphere : public hittable {
         rec.t = root;                                     // Distance along ray to intersection point.
         rec.p = r.at(rec.t);                              // Location of intersection point in world space.
         vec3 outward_normal = (rec.p - center) / radius;  // Unit outward surface normal at intersection point with sphere.
-        rec.set_face_normal(r, outward_normal);           // Set the unit face normal (enforced to oppose the ray direction)
+        rec.set_face_normal(r, outward_normal);           // Set the unit face normal (enforced to oppose the ray direction).
+        rec.mat = mat;                                    // Record a pointer to the material object associated with the sphere.
 
         return true;
     }
@@ -46,4 +50,5 @@ class sphere : public hittable {
   private:
     point3 center;
     double radius;
+    shared_ptr<material> mat;           // Pointer to a material object that defines scattered ray behaviour
 };
