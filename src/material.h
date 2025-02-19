@@ -69,3 +69,35 @@ class metal : public material {
         color albedo;
         double fuzz;                // (0 < fuzz < 1) specifies fuzziness of reflected ray (random perturbation to direction of perfect reflection).
 };
+
+
+// Dielectric material that always refracts.
+class dielectric : public material {
+
+    public:
+
+        dielectric(double refraction_index) : refraction_index(refraction_index) {}
+    
+
+        bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override {
+
+            attenuation = color(1.0, 1.0, 1.0);     // No attenuation of ray
+
+            // refractive index get inverted depending on whether we're entering or leaving the medium
+            double ri = rec.front_face ? (1.0/refraction_index) : refraction_index;
+    
+            // Get direction of refracted ray
+            vec3 unit_direction = unit_vector(r_in.direction());
+            vec3 refracted = refract(unit_direction, rec.normal, ri);
+    
+            // Create scattered ray
+            scattered = ray(rec.p, refracted);
+
+            return true;
+        }
+  
+    private:
+        // Refractive index in vacuum or air, or the ratio of the material's refractive index over
+        // the refractive index of the enclosing media
+        double refraction_index;
+  };
