@@ -86,12 +86,25 @@ class dielectric : public material {
             // refractive index get inverted depending on whether we're entering or leaving the medium
             double ri = rec.front_face ? (1.0/refraction_index) : refraction_index;
     
-            // Get direction of refracted ray
+            // Get direction of incident ray
             vec3 unit_direction = unit_vector(r_in.direction());
-            vec3 refracted = refract(unit_direction, rec.normal, ri);
-    
-            // Create scattered ray
-            scattered = ray(rec.p, refracted);
+            
+            // Calculate sin_theta to detect total internal reflection (TIR)
+            double cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0);
+            double sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
+
+            // Condition to detect TIR
+            bool cannot_refract = ri * sin_theta > 1.0;
+
+            // Get direction of reflected/refracted ray
+            vec3 direction;
+            if (cannot_refract)
+                direction = reflect(unit_direction, rec.normal);
+            else
+                direction = refract(unit_direction, rec.normal, ri);
+
+            // Create the reflected/refracted ray
+            scattered = ray(rec.p, direction);
 
             return true;
         }
