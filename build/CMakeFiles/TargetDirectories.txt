@@ -1,3 +1,0 @@
-/home/tbeardsl/projects/ray_tracing/rt_one_weekend/build/CMakeFiles/inOneWeekend.dir
-/home/tbeardsl/projects/ray_tracing/rt_one_weekend/build/CMakeFiles/edit_cache.dir
-/home/tbeardsl/projects/ray_tracing/rt_one_weekend/build/CMakeFiles/rebuild_cache.dir
