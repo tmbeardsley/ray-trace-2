@@ -1,6 +1,4 @@
 #pragma once
-
-#include <cmath>
 #include <iostream>
 
 class vec3 {
@@ -46,6 +44,20 @@ class vec3 {
     // v.v
     double length_squared() const {
         return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
+    }
+
+    bool near_zero() const {
+        // Return true if the vector is close to zero in all dimensions.
+        auto s = 1e-8;
+        return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+    }
+
+    static vec3 random() {
+        return vec3(random_double(), random_double(), random_double());     // 0 <= random_double() <= 1.0
+    }
+
+    static vec3 random(double min, double max) {
+        return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
     }
 };
 
@@ -97,4 +109,41 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unit_vector(const vec3& v) {
     return v / v.length();
+}
+
+// Reject vectors not inside unit sphere until valid, then normalise to create unit vector.
+// lensq > 1e-160 ensures we don't get infinities due to limited precision.
+inline vec3 random_unit_vector() {
+    while (true) {
+        auto p = vec3::random(-1,1);
+        auto lensq = p.length_squared();
+        if (1e-160 < lensq && lensq <= 1)
+            return p / sqrt(lensq);
+    }
+}
+
+// Generates a random unit vector in the same hemisphere as the surface unit normal.
+inline vec3 random_on_hemisphere(const vec3& normal) {
+    vec3 on_unit_sphere = random_unit_vector();
+    if (dot(on_unit_sphere, normal) > 0.0)  // In the same hemisphere as the normal
+        return on_unit_sphere;
+    else
+        return -on_unit_sphere;             // Invert random unit vector to be in same hemisphere as surface normal
+}
+
+// Returns a reflected ray given an incoming ray, v, and unit surface normal, n.
+inline vec3 reflect(const vec3& v, const vec3& n) {
+    return v - 2*dot(v,n)*n;
+}
+
+
+// Get direction of refracted ray
+inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
+
+    auto cos_theta = std::fmin(dot(-uv, n), 1.0);                                           // -ve due to ray being in direction opposed to surface normal.
+    vec3 r_out_perp =  etai_over_etat * (uv + cos_theta*n);                                 // Perpendicular ray direction
+    vec3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())) * n;     // Parallel ray direction
+
+    // Return refracted ray direction
+    return r_out_perp + r_out_parallel;
 }
