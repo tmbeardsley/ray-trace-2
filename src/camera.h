@@ -12,6 +12,17 @@ class camera {
     int    samples_per_pixel  = 10;       // Count of random ray samples for each pixel
     int    max_depth          = 10;       // Maximum number of ray bounces into scene (if exceeded, no light contributed. I.e., color(0,0,0) returned).
 
+    double vfov = 90;                     // Vertical view angle (field of view)
+    point3 lookfrom = point3(0,0,0);      // Point camera is looking from
+    point3 lookat   = point3(0,0,-1);     // Point camera is looking at
+    vec3   vup      = vec3(0,1,0);        // Camera-relative "up" direction
+
+    // defocus blur (depth of field)
+    double defocus_angle      = 0;        // Variation angle of rays through each pixel
+    double focus_dist         = 10;       // Distance from camera lookfrom point to plane of perfect focus
+
+
+
     void render(const hittable& world) {
 
         // Set up the camera parameters
@@ -54,6 +65,11 @@ class camera {
     point3 pixel00_loc;           // Location of pixel 0, 0
     vec3   pixel_delta_u;         // Offset to pixel to the right
     vec3   pixel_delta_v;         // Offset to pixel below
+    vec3   u, v, w;               // Camera frame basis vectors
+
+    vec3   defocus_disk_u;        // Defocus disk radius projected in u-direction
+    vec3   defocus_disk_v;        // Defocus disk radius projected in v-direction
+
 
     void initialize() {
         image_height = int(image_width / aspect_ratio);
@@ -62,16 +78,24 @@ class camera {
         pixel_samples_scale = 1.0 / samples_per_pixel;
 
         // Camera centre
-        center = point3(0, 0, 0);
+        center = lookfrom;
 
         // Determine viewport dimensions.
-        auto focal_length = 1.0;
-        auto viewport_height = 2.0;                                                     // world-space units
+        //auto focal_length = (lookfrom - lookat).length();                             // Focal length determined by specified points
+        auto theta = degrees_to_radians(vfov);
+        auto h = std::tan(theta/2);
+        auto viewport_height = 2 * h * focus_dist;                                      // viewport_height defined by field-of-view angle and focal length.
+        //auto viewport_height = 2 * h * focal_length;                                    // viewport_height defined by field-of-view angle and focal length.
         auto viewport_width = viewport_height * (double(image_width)/image_height);     // world-space units
 
+        // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+        w = unit_vector(lookfrom - lookat);
+        u = unit_vector(cross(vup, w));
+        v = cross(w, u);
+
         // Calculate the vectors across the horizontal and down the vertical viewport edges.
-        auto viewport_u = vec3(viewport_width, 0, 0);
-        auto viewport_v = vec3(0, -viewport_height, 0);
+        vec3 viewport_u = viewport_width * u;       // Vector across viewport horizontal edge using unit vector, u.
+        vec3 viewport_v = viewport_height * -v;     // Vector down viewport vertical edge using unit vector, v.
 
         // Calculate the horizontal and vertical delta vectors from pixel to pixel.
         pixel_delta_u = viewport_u / image_width;
@@ -79,19 +103,24 @@ class camera {
 
         // Calculate the location of the upper left pixel in world-space.
         auto viewport_upper_left =  center                        // camera is orthogonal to centre of viewport plane.
-                                    - vec3(0, 0, focal_length)    // viewport is in -z direction from camera.
+                                    - (focus_dist * w)          // viewport is in -w direction from camera.
                                     - viewport_u/2                // viewport_u points in +x direction.
                                     - viewport_v/2;               // viewport_v points in -y direction.
 
         // Calculate the location of the top-left viewport pixel.
         // Outer pixels are padded so that each pixel takes up the same world-space area.
         pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+        // Calculate the camera defocus disk basis vectors.
+        auto defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle / 2));
+        defocus_disk_u = u * defocus_radius;
+        defocus_disk_v = v * defocus_radius;
     }
 
 
     ray get_ray(int i, int j) const {
-      // Construct a camera ray originating from the origin and directed at randomly sampled
-      // point around the pixel location i, j.
+      // Construct a camera ray originating from a random point on the defocus disk 
+      // and directed at a randomly sampled point around the pixel location i, j.
 
       // Random (x,y,0) location within -0.5 < x,y < 0.5.
       auto offset = sample_square();
@@ -101,7 +130,7 @@ class camera {
                         + ((i + offset.x()) * pixel_delta_u)
                         + ((j + offset.y()) * pixel_delta_v);
 
-      auto ray_origin = center;
+      auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
       auto ray_direction = pixel_sample - ray_origin;
 
       return ray(ray_origin, ray_direction);
@@ -111,6 +140,13 @@ class camera {
     vec3 sample_square() const {
       // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
       return vec3(random_double() - 0.5, random_double() - 0.5, 0);
+    }
+
+
+    point3 defocus_disk_sample() const {
+      // Returns a random point in the camera defocus disk in u,v basis vectors.
+      auto p = random_in_unit_disk();
+      return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
     }
 
 
