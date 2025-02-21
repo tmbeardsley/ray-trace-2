@@ -111,6 +111,14 @@ inline vec3 unit_vector(const vec3& v) {
     return v / v.length();
 }
 
+inline vec3 random_in_unit_disk() {
+    while (true) {
+        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+        if (p.length_squared() < 1)
+            return p;
+    }
+}
+
 // Reject vectors not inside unit sphere until valid, then normalise to create unit vector.
 // lensq > 1e-160 ensures we don't get infinities due to limited precision.
 inline vec3 random_unit_vector() {
