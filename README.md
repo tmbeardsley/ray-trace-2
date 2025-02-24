@@ -16,8 +16,8 @@ From the top directory, run: <br><br>
 
 ## 3. Running the program
 After compilation the executable file, inOneWeekend, resides in the 'build' directory. 
-From the top level of the directory tree, the program is run via: <br><br>
-<b>./build/inOneWeekend</b>
+From the top level of the directory tree, the output of the program is output to an image file via: <br><br>
+<b>./build/inOneWeekend > image.ppm</b>
 
 ## 4. Program parameters
 At present, the parameters are specified in the main.cc file. Admittedly, this is not ideal (since the program must be recompiled after a parameter change) and will be addressed in a future update. 
