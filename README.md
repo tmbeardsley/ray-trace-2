@@ -16,7 +16,7 @@ From the top directory, run: <br><br>
 
 ## 3. Running the program
 After compilation the executable file, inOneWeekend, resides in the 'build' directory. 
-From the top level of the directory tree, the output of the program is output to an image file via: <br><br>
+From the top level of the directory tree, the output of the program is piped to an image file via: <br><br>
 <b>./build/inOneWeekend > image.ppm</b>
 
 ## 4. Program parameters
