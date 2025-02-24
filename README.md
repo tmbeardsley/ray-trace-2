@@ -21,7 +21,7 @@ From the top level of the directory tree, the output of the program is piped to 
 
 ## 4. Program parameters
 At present, the parameters are specified in the main.cc file. Admittedly, this is not ideal (since the program must be recompiled after a parameter change) and will be addressed in a future update. 
-<br><br>
+
 ### 4a. Camera properties
 In the following table, "cam" is an instance of the camera class. It specifies how the "world" is captured by the camera.
 
