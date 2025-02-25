@@ -6,18 +6,27 @@
 class sphere : public hittable {
 
   public:
-    // Constructor requires the sphere to have a centre and a radius.
-    // ray_tmin < t < ray_tmax, allow us to specify a range of valid intersection points (e.g., discounting -ve t).
-    sphere(const point3& center, double radius, shared_ptr<material> mat) :
-      center(center),
+
+    // Constructor requires the stationary sphere to have a centre, radius and material.
+    sphere(const point3& static_center, double radius, shared_ptr<material> mat) :
+      center(static_center, vec3(0,0,0)),                                             // ray with direction (0,0,0) means sphere centre doesn't move with time
       radius(std::fmax(0,radius)), 
       mat(mat) {}
+    
+
+    // Moving Sphere has its centre at center1 at time=0, and at center2 at time=1. The centre moves linearly between those points.
+    sphere(const point3& center1, const point3& center2, double radius, shared_ptr<material> mat) :
+      center(center1, center2 - center1),                                             // Ray with direction = center2 - center1, to linearly track sphere centre
+      radius(std::fmax(0,radius)), 
+      mat(mat) {}
+
 
     // Returns true if the specified ray intersects the sphere.
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
 
         // Use the quadratic formula to determine whether the ray, r, intersects the sphere.
-        vec3 oc = center - r.origin();
+        point3 current_center = center.at(r.time());              // Determine the sphere centre at the time the current ray was fired
+        vec3 oc = current_center - r.origin();                    // Vector pointing to the sphere centre relative to the ray origin
         auto a = r.direction().length_squared();
         auto h = dot(r.direction(), oc);
         auto c = oc.length_squared() - radius*radius;
@@ -38,17 +47,18 @@ class sphere : public hittable {
         }
 
         // Save important stuff in the hit_record object.
-        rec.t = root;                                     // Distance along ray to intersection point.
-        rec.p = r.at(rec.t);                              // Location of intersection point in world space.
-        vec3 outward_normal = (rec.p - center) / radius;  // Unit outward surface normal at intersection point with sphere.
-        rec.set_face_normal(r, outward_normal);           // Set the unit face normal (enforced to oppose the ray direction).
-        rec.mat = mat;                                    // Record a pointer to the material object associated with the sphere.
+        rec.t = root;                                             // Distance along ray to intersection point.
+        rec.p = r.at(rec.t);                                      // Location of intersection point in world space.
+        vec3 outward_normal = (rec.p - current_center) / radius;  // Unit outward surface normal at intersection point with sphere.
+        rec.set_face_normal(r, outward_normal);                   // Set the unit face normal (enforced to oppose the ray direction).
+        rec.mat = mat;                                            // Record a pointer to the material object associated with the sphere.
 
         return true;
     }
 
+
   private:
-    point3 center;
+    ray center;                         // Sphere centre now specified by a ray as it's time dependent
     double radius;
     shared_ptr<material> mat;           // Pointer to a material object that defines scattered ray behaviour
 };

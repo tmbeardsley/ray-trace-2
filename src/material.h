@@ -33,7 +33,7 @@ class lambertian : public material {
         if (scatter_direction.near_zero())
             scatter_direction = rec.normal;
 
-        scattered = ray(rec.p, scatter_direction);                      // Ray object originating from object intersection point
+        scattered = ray(rec.p, scatter_direction, r_in.time());         // Ray object originating from object intersection point at same time as incoming ray (negligible time difference due to speed of light)
         attenuation = albedo;                                           // Reflectance of r,g,b
         return true;
       }
@@ -59,7 +59,7 @@ class metal : public material {
             // Add random perturbation to direction of reflected ray (fuzzy reflection)
             reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
 
-            scattered = ray(rec.p, reflected);                          // Ray object originating from object intersection point
+            scattered = ray(rec.p, reflected, r_in.time());             // Ray object originating from object intersection point at same time as incoming ray (negligible time difference due to speed of light)
             attenuation = albedo;                                       // Reflectance of r,g,b
 
             return (dot(scattered.direction(), rec.normal) > 0);        // Ray absorbed (returns false) if fuzziness scattered ray below surface
@@ -104,7 +104,7 @@ class dielectric : public material {
                 direction = refract(unit_direction, rec.normal, ri);
 
             // Create the reflected/refracted ray
-            scattered = ray(rec.p, direction);
+            scattered = ray(rec.p, direction, r_in.time());             // Ray object originating from object intersection point at same time as incoming ray (negligible time difference due to speed of light)
 
             return true;
         }
