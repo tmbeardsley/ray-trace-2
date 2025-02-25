@@ -9,7 +9,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/inOneWeekend",
+            "program": "${workspaceFolder}/build/theNextWeek",
             "args": [">", "image.ppm"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

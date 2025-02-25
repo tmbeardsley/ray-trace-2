@@ -26,17 +26,24 @@ endif()
 #   src/external/stb_image.h
 # )
 
-set ( SOURCE_ONE_WEEKEND
+set ( SOURCE_NEXT_WEEK
   src/main.cc
+  #src/aabb.h
+  #src/bvh.h
   src/camera.h
   src/color.h
+  #src/constant_medium.h
   src/hittable.h
   src/hittable_list.h
   src/interval.h
   src/material.h
+  #src/perlin.h
+  #src/quad.h
   src/ray.h
+  #src/rtw_stb_image.h
   src/rtweekend.h
   src/sphere.h
+  #src/texture.h
   src/vec3.h
 )
 
@@ -71,4 +78,4 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # Executables
-add_executable(inOneWeekend      ${SOURCE_ONE_WEEKEND})
+add_executable(theNextWeek       ${EXTERNAL} ${SOURCE_NEXT_WEEK})
