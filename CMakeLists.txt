@@ -28,8 +28,8 @@ endif()
 
 set ( SOURCE_NEXT_WEEK
   src/main.cc
-  #src/aabb.h
-  #src/bvh.h
+  src/aabb.h
+  src/bvh.h
   src/camera.h
   src/color.h
   #src/constant_medium.h
