@@ -10,6 +10,12 @@ class interval {
 
         interval(double min, double max) : min(min), max(max) {}
 
+        // Create the interval tightly enclosing the two input intervals.
+        interval(const interval& a, const interval& b) {
+            min = a.min <= b.min ? a.min : b.min;
+            max = a.max >= b.max ? a.max : b.max;
+        }
+
         double size() const {
             return max - min;
         }
@@ -26,6 +32,12 @@ class interval {
             if (x < min) return min;
             if (x > max) return max;
             return x;
+        }
+
+        // Used to expand axis-aligned bounding boxes by small amount to deal with grazing rays (B2 c3.4)
+        interval expand(double delta) const {
+            auto padding = delta/2;
+            return interval(min - padding, max + padding);
         }
   
         static const interval empty, universe;

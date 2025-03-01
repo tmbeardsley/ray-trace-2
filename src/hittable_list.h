@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aabb.h"
 #include "hittable.h"
 
 #include <vector>
@@ -19,6 +20,9 @@ class hittable_list : public hittable {
     // Add a hittable to the objects vector
     void add(shared_ptr<hittable> object) {
         objects.push_back(object);
+
+        // Update the extents of the hittable_list's bounding box any time a hittable object is added to it
+        bbox = aabb(bbox, object->bounding_box());
     }
 
     // This function has to be overridden as it exists in the base class, hittable.
@@ -42,4 +46,11 @@ class hittable_list : public hittable {
 
         return hit_anything;
     }
+
+    // Accessor for the hittable_list's bounding box object.
+    aabb bounding_box() const override { return bbox; }
+
+
+    private:
+        aabb bbox;                  // Bounding box that encompassed all hittable children of this hittable_list
 };
